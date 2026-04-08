@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meri Jaan ❤️ — Our Moments</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --rose: #ff4d8d;
+    --rose-light: #ff85b3;
+    --rose-pale: #ffd6e7;
+    --deep: #0e0014;
+    --deep2: #1a0022;
+    --cream: rgba(255,214,231,0.85);
+    --text-muted: rgba(255,200,225,0.65);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--deep);
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  #particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  /* ========== BG HEARTS CANVAS ========== */
+  #heartCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 800px 600px at 15% 20%, rgba(107,33,168,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 600px 800px at 85% 70%, rgba(255,77,141,0.12) 0%, transparent 70%),
+      linear-gradient(160deg, #0e0014 0%, #130018 40%, #0a0010 100%);
+    pointer-events: none;
+  }
+
+  /* ========== INTRO OVERLAY ========== */
+  #intro-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at center, #1a0028 0%, #0a0010 60%, #000 100%);
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+
+  #intro-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  .intro-box {
+    max-width: 540px; width: 92%;
+    text-align: center;
+    position: relative; z-index: 2;
+    padding: 0 20px;
+  }
+
+  .intro-sparkle {
+    font-size: 52px;
+    animation: floatBounce 2s ease-in-out infinite;
+    display: block; margin-bottom: 16px;
+  }
+
+  @keyframes floatBounce {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-12px) rotate(5deg); }
+  }
+
+  .intro-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(36px, 8vw, 60px);
+    background: linear-gradient(135deg, #ff4d8d, #ff85b3, #ffd6e7, #ff4d8d);
+    background-size: 300%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 4s linear infinite;
+    line-height: 1.1; margin-bottom: 10px;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; }
+  }
+
+  .intro-sub {
+    font-size: 12px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 300; margin-bottom: 40px;
+  }
+
+  .question-step { display: none; animation: fadeSlideIn 0.5s ease forwards; }
+  .question-step.active { display: block; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(18px, 4vw, 24px);
+    color: #ffd6e7; margin-bottom: 30px;
+    line-height: 1.5; font-style: italic;
+  }
+
+  /* Button container - key fix for No button overlap */
+  .btn-area {
+    position: relative;
+    width: 100%; height: 100px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .btn-yes {
+    padding: 14px 44px;
+    border: none; border-radius: 50px;
+    background: linear-gradient(135deg, #ff4d8d, #9333ea);
+    color: white; font-family: 'Outfit', sans-serif;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 30px rgba(255,77,141,0.45);
+    position: relative; overflow: hidden; z-index: 2;
+    flex-shrink: 0;
+  }
+
+  .btn-yes::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, #ff85b3, #a855f7);
+    opacity: 0; transition: opacity 0.3s;
+  }
+
+  .btn-yes:hover { transform: scale(1.07); box-shadow: 0 12px 40px rgba(255,77,141,0.6); }
+  .btn-yes:hover::before { opacity: 1; }
+  .btn-yes span { position: relative; z-index: 1; }
+
+  .btn-no {
+    padding: 10px 24px; border-radius: 50px;
+    border: 1px solid rgba(255,77,141,0.2);
+    background: transparent;
+    color: rgba(255,200,225,0.35);
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px; cursor: pointer;
+    white-space: nowrap;
+    position: absolute;
+    transition: font-size 0.2s, opacity 0.2s;
+    /* start position - bottom right of btn-area */
+    bottom: 5px; right: 0;
+    z-index: 1;
+  }
+
+  .progress-dots {
+    display: flex; justify-content: center; gap: 8px; margin-top: 28px;
+  }
+
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,77,141,0.25);
+    transition: background 0.3s, transform 0.3s;
+  }
+
+  .dot.active { background: #ff4d8d; transform: scale(1.3); }
+
+  /* ========== HERO ========== */
+  .hero {
+    position: relative; z-index: 2;
+    text-align: center; padding: 60px 20px 20px;
+  }
+
+  .hero-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(44px, 9vw, 90px);
+    background: linear-gradient(135deg, #ff4d8d 0%, #ff85b3 40%, #ffd6e7 70%, #ff4d8d 100%);
+    background-size: 300%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 5s linear infinite;
+    line-height: 1; margin-bottom: 12px;
+  }
+
+  .hero-sub {
+    font-size: 12px; letter-spacing: 5px; text-transform: uppercase;
+    color: var(--text-muted); font-weight: 200; margin-bottom: 32px;
+  }
+
+  /* ========== MUSIC PLAYER ========== */
+  .music-player {
+    display: inline-flex; align-items: center; gap: 14px;
+    background: rgba(255,77,141,0.08);
+    border: 1px solid rgba(255,77,141,0.22);
+    border-radius: 60px; padding: 12px 24px;
+    cursor: pointer; transition: all 0.3s; margin-bottom: 50px;
+    user-select: none; backdrop-filter: blur(10px);
+  }
+
+  .music-player:hover {
+    background: rgba(255,77,141,0.16);
+    border-color: rgba(255,77,141,0.5);
+    transform: scale(1.03);
+    box-shadow: 0 0 30px rgba(255,77,141,0.15);
+  }
+
+  .play-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff4d8d, #9333ea);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+    box-shadow: 0 0 15px rgba(255,77,141,0.4);
+  }
+
+  .music-info { text-align: left; }
+  .music-title-text { font-size: 14px; font-weight: 600; color: #ff85b3; }
+  .music-status { font-size: 11px; color: var(--text-muted); font-weight: 300; }
+
+  .eq-bars { display: flex; align-items: flex-end; gap: 2px; height: 18px; }
+
+  .eq-bar {
+    width: 3px;
+    background: linear-gradient(to top, #ff4d8d, #ff85b3);
+    border-radius: 2px;
+    animation: eqDance 0.7s ease-in-out infinite alternate;
+    transform-origin: bottom;
+  }
+
+  .eq-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
+  .eq-bar:nth-child(2) { height: 14px; animation-delay: 0.12s; }
+  .eq-bar:nth-child(3) { height: 8px; animation-delay: 0.24s; }
+  .eq-bar:nth-child(4) { height: 16px; animation-delay: 0.06s; }
+  .eq-bar:nth-child(5) { height: 5px; animation-delay: 0.18s; }
+  .eq-bar:nth-child(6) { height: 11px; animation-delay: 0.3s; }
+
+  @keyframes eqDance {
+    from { transform: scaleY(0.3); opacity: 0.5; }
+    to { transform: scaleY(1); opacity: 1; }
+  }
+
+  .eq-bars.paused .eq-bar { animation-play-state: paused; opacity: 0.3; }
+
+  /* ========== SLIDESHOW ========== */
+  .slideshow-wrapper {
+    position: relative; z-index: 2;
+    max-width: 900px; margin: 0 auto 60px;
+    padding: 0 24px;
+  }
+
+  .slideshow-stage {
+    position: relative;
+    width: 100%; height: 520px;
+    border-radius: 28px; overflow: hidden;
+    background: rgba(107,33,168,0.1);
+    border: 1px solid rgba(255,77,141,0.2);
+    box-shadow: 0 0 80px rgba(255,77,141,0.1);
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    display: flex; align-items: stretch;
+  }
+
+  .slide.active { opacity: 1; z-index: 2; }
+  .slide.prev { opacity: 0; z-index: 1; }
+
+  .slide img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Gradient overlay on slide */
+  .slide-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      to bottom,
+      transparent 30%,
+      rgba(14,0,20,0.5) 65%,
+      rgba(10,0,16,0.92) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Caption typewriter area */
+  .slide-caption-area {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 28px 36px 32px;
+    z-index: 5;
+    min-height: 110px;
+    display: flex; align-items: flex-end;
+  }
+
+  .slide-caption-text {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(15px, 2.5vw, 20px);
+    color: rgba(255,220,235,0.92);
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+    min-height: 56px;
+  }
+
+  .cursor-blink {
+    display: inline-block;
+    width: 2px; height: 1.1em;
+    background: #ff85b3;
+    margin-left: 3px;
+    vertical-align: middle;
+    animation: blink 0.9s step-end infinite;
+    border-radius: 1px;
+  }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* Nav arrows */
+  .slide-nav {
+    position: absolute; top: 50%; z-index: 6;
+    transform: translateY(-50%);
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(255,77,141,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,77,141,0.3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px; color: #ff85b3;
+    transition: all 0.25s;
+    user-select: none;
+  }
+
+  .slide-nav:hover { background: rgba(255,77,141,0.35); transform: translateY(-50%) scale(1.1); }
+  .slide-nav.prev-btn { left: 14px; }
+  .slide-nav.next-btn { right: 14px; }
+
+  /* Dots indicator */
+  .slide-dots {
+    display: flex; justify-content: center; gap: 8px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+
+  .slide-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: rgba(255,77,141,0.25);
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none; padding: 0;
+  }
+
+  .slide-dot.active { background: #ff4d8d; transform: scale(1.4); }
+
+  /* Auto play progress bar */
+  .progress-bar-wrap {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px; z-index: 8;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4d8d, #9333ea);
+    width: 0%;
+    transition: none;
+    border-radius: 0 2px 0 0;
+  }
+
+  .progress-bar-fill.running {
+    transition: width 11s linear;
+    width: 100%;
+  }
+
+  /* ========== FOOTER ========== */
+  .footer-poem {
+    position: relative; z-index: 2;
+    text-align: center; padding: 20px 24px 80px;
+  }
+
+  .footer-poem p {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(20px, 4vw, 32px);
+    color: rgba(255,180,210,0.75); line-height: 1.9;
+  }
+
+  .footer-poem em { color: #ff85b3; font-style: normal; }
+
+  /* ========== LIGHTBOX ========== */
+  .lightbox {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(5,0,12,0.96);
+    align-items: center; justify-content: center;
+    flex-direction: column; gap: 20px;
+    backdrop-filter: blur(14px);
+  }
+
+  .lightbox.open { display: flex; }
+
+  .lightbox img {
+    max-width: 88vw; max-height: 80vh;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255,77,141,0.35);
+    object-fit: contain;
+    animation: lbIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    cursor: zoom-out;
+  }
+
+  @keyframes lbIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .lb-close {
+    position: absolute; top: 20px; right: 24px;
+    background: none; border: none;
+    color: rgba(255,200,225,0.6); font-size: 30px;
+    cursor: pointer; line-height: 1;
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .lb-close:hover { color: #ff4d8d; transform: rotate(90deg); }
+
+  /* ========== FLOATING HEARTS ========== */
+  .floating-heart {
+    position: fixed; pointer-events: none; z-index: 998;
+    animation: floatHeart 3s ease-out forwards;
+  }
+
+  @keyframes floatHeart {
+    0% { transform: translateY(0) scale(0.4) rotate(0deg); opacity: 1; }
+    60% { opacity: 0.8; }
+    100% { transform: translateY(-300px) scale(1.3) rotate(25deg); opacity: 0; }
+  }
+
+  audio { display: none; }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--deep); }
+  ::-webkit-scrollbar-thumb { background: rgba(255,77,141,0.4); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<canvas id="heartCanvas"></canvas>
+<div class="bg-layer"></div>
+
+<!-- ========== INTRO OVERLAY ========== -->
+<div id="intro-overlay">
+  <div class="intro-box">
+    <span class="intro-sparkle">💝</span>
+    <div class="intro-title">Ek Kaam Karo...</div>
+    <div class="intro-sub">Pehle kuch sawalon ka jawab do</div>
+
+    <div class="question-step active" id="step-1">
+      <div class="question-text">"Kya tum mujhse pyaar karte ho?"</div>
+      <div class="btn-area">
+        <button class="btn-yes" onclick="nextStep(2)"><span>💕 Haan, Bilkul!</span></button>
+        <button class="btn-no" id="no1" onmouseenter="runNo('no1')" ontouchstart="runNo('no1')">Nahi...</button>
+      </div>
+    </div>
+
+    <div class="question-step" id="step-2">
+      <div class="question-text">"Kya main tumhari zindagi ka sabse khaas hissa hoon?"</div>
+      <div class="btn-area">
+        <button class="btn-yes" onclick="nextStep(3)"><span>✨ Haan, Sirf Tum!</span></button>
+        <button class="btn-no" id="no2" onmouseenter="runNo('no2')" ontouchstart="runNo('no2')">Shayad...</button>
+      </div>
+    </div>
+
+    <div class="question-step" id="step-3">
+      <div class="question-text">"Kya tum hamesha mere saath rehoge?"</div>
+      <div class="btn-area">
+        <button class="btn-yes" onclick="enterGallery()"><span>🌹 Haan, Hamesha!</span></button>
+        <button class="btn-no" id="no3" onmouseenter="runNo('no3')" ontouchstart="runNo('no3')">Pata nahi...</button>
+      </div>
+    </div>
+
+    <div class="progress-dots">
+      <div class="dot active" id="dot-1"></div>
+      <div class="dot" id="dot-2"></div>
+      <div class="dot" id="dot-3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MAIN CONTENT ========== -->
+<div id="main-content">
+  <div class="hero">
+    <div class="hero-title">Meri Jaan ❤️</div>
+    <div class="hero-sub">Our beautiful moments forever</div>
+
+    <div class="music-player" id="musicPlayer" onclick="toggleMusic()">
+      <div class="play-btn" id="playIcon">▶</div>
+      <div class="music-info">
+        <div class="music-title-text">Hath Fadke — Sidhu Moose Wala</div>
+        <div class="music-status" id="musicStatus">Click karke sunao 🎵</div>
+      </div>
+      <div class="eq-bars paused" id="eqBars">
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDESHOW -->
+  <div class="slideshow-wrapper">
+    <div class="slideshow-stage" id="slideshowStage">
+      <!-- slides injected by JS -->
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="slide-dots" id="slideDots"></div>
+  </div>
+
+  <div class="footer-poem">
+    <p>
+      Har pal tera saath chahiye,<br>
+      <em>Tu hi meri duniya hai jaan.</em><br>
+      Tera hona hi mera sab kuch hai,<br>
+      <em>Aaj, kal, aur hamesha. ❤️</em>
+    </p>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <img id="lbImg" src="" alt="">
+</div>
+
+<audio id="bgMusic" loop>
+  <source src="hath_fadke.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// ============================================================
+// PHOTOS — sirf src badlo, baki sab waise hi rehne do
+// ============================================================
+const photos = [
+  { src: "src/photo1.jpg",  caption: "Pehli baar jab tune mujhe dekha tha — woh aankh mein chamak aaj bhi yaad hai ❤️" },
+  { src: "src/photo2.jpg",  caption: "Ye din yaad hai? Kitna hasye the dono — teri hansi hi meri taaqat hai 🌸" },
+  { src: "src/photo3.jpg",  caption: "Kuch lamhe words mein nahi kehne hote — ye bhi waisa hi tha 💌" },
+  { src: "src/photo4.jpg",  caption: "Tu hai meri... bss meri ❤️ 🌙" },
+  { src: "src/photo5.jpg",  caption: "Tere haath mein haath tha — aur dil ne kaha, yahi ghar hai mera 🫂" },
+  { src: "src/photo6.jpg",  caption: "Kuch lamhe words mein nahi kehne hote — ye bhi waisa hi tha 💌" },
+  { src: "src/photo7.jpg",  caption: "Is raat ka sitara tu thi — baaki sab andhera tha 🌟" },
+  { src: "src/photo8.jpg",  caption: "Teri muskaan ke aage duniya ki har khushi chhoti lagti hai 😊" },
+  { src: "src/photo9.jpg",  caption: "Har pal jo tere saath guzara — woh zindagi ka sabse sundar hissa hai 🌺" },
+  { src: "src/photo10.jpg", caption: "Tujhe dekha to ye jaana — ishq sirf tujhse hota hai 💫" },
+  { src: "src/photo11.jpg", caption: "Ek pal bhi tere bina guzarna mushkil lagta hai 💗" },
+  { src: "src/photo12.jpg", caption: "Tera saath tha, toh har mushkil aasaan lagi — teri aadat ho gayi hai 🌼" },
+  { src: "src/photo13.jpg", caption: "Jo waqt tere saath guzara — woh mere dil mein hamesha mehfuz hai 🕊️" },
+  { src: "src/photo14.jpg", caption: "Sirf tujhe chahta hoon — ye duniya, ye sab kuch — bas tu 💝" },
+  { src: "src/photo15.jpg", caption: "Hath fadke na ja mere yaar — tere bina ye dil adhoora hai 🎵❤️" }
+];
+
+// ============================================================
+// INTRO LOGIC
+// ============================================================
+let currentStep = 1;
+
+function nextStep(n) {
+  document.getElementById(`step-${currentStep}`).classList.remove('active');
+  document.getElementById(`dot-${currentStep}`).classList.remove('active');
+  currentStep = n;
+  document.getElementById(`step-${currentStep}`).classList.add('active');
+  document.getElementById(`dot-${currentStep}`).classList.add('active');
+}
+
+function runNo(btnId) {
+  const btn = document.getElementById(btnId);
+  const area = btn.parentElement; // .btn-area
+  const aW = area.offsetWidth;
+  const aH = area.offsetHeight;
+  const bW = btn.offsetWidth;
+  const bH = btn.offsetHeight;
+
+  // Random position within btn-area, never overlapping center where Yes sits
+  let left, top;
+  do {
+    left = Math.random() * (aW - bW);
+    top  = Math.random() * (aH - bH);
+  } while (
+    left > aW * 0.25 && left < aW * 0.75 &&
+    top  > aH * 0.15 && top  < aH * 0.85
+  );
+
+  btn.style.position = 'absolute';
+  btn.style.left = left + 'px';
+  btn.style.top  = top  + 'px';
+  btn.style.transform = 'none';
+
+  const currentSize = parseFloat(btn.style.fontSize) || 13;
+  const newSize = Math.max(7, currentSize - 1.2);
+  btn.style.fontSize = newSize + 'px';
+  btn.style.opacity = Math.max(0.08, parseFloat(btn.style.opacity || 1) - 0.12);
+
+  if (newSize <= 7) btn.style.visibility = 'hidden';
+}
+
+function enterGallery() {
+  document.getElementById('intro-overlay').classList.add('hidden');
+  startSlideshow();
+  // Auto play music jaise hi gallery khule
+  const aud = document.getElementById('bgMusic');
+  aud.volume = 0.45;
+  aud.play().then(() => {
+    playing = true;
+    document.getElementById('playIcon').textContent = '⏸';
+    document.getElementById('musicStatus').textContent = '♪ Sun lo dil se... ♪';
+    document.getElementById('eqBars').classList.remove('paused');
+  }).catch(() => {
+    // Browser ne autoplay rok di — user click karke play kar sakta hai
+  });
+}
+
+// ============================================================
+// SLIDESHOW
+// ============================================================
+let currentSlide = 0;
+let slideTimer = null;
+let typeTimer = null;
+const SLIDE_DURATION = 11000;
+
+function buildSlideshow() {
+  const stage = document.getElementById('slideshowStage');
+  const dotsEl = document.getElementById('slideDots');
+
+  photos.forEach((p, i) => {
+    // Slide
+    const slide = document.createElement('div');
+    slide.className = 'slide' + (i === 0 ? ' active' : '');
+    slide.id = `slide-${i}`;
+    slide.innerHTML = `
+      <img src="${p.src}" alt="Moment ${i+1}"
+        onerror="this.src='https://placehold.co/900x520/1a0022/ff85b3?text=Photo+${i+1}'"
+        loading="${i < 3 ? 'eager' : 'lazy'}"
+      >
+      <div class="slide-overlay"></div>
+      <div class="slide-caption-area">
+        <div class="slide-caption-text" id="caption-${i}"></div>
+      </div>
+    `;
+    slide.querySelector('img').addEventListener('click', () => {
+      openLightbox(p.src);
+    });
+    stage.insertBefore(slide, stage.querySelector('.progress-bar-wrap'));
+
+    // Dot
+    const dot = document.createElement('button');
+    dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `Slide ${i+1}`);
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsEl.appendChild(dot);
+  });
+
+  // Nav arrows
+  const prevBtn = document.createElement('div');
+  prevBtn.className = 'slide-nav prev-btn';
+  prevBtn.innerHTML = '‹';
+  prevBtn.addEventListener('click', () => goToSlide((currentSlide - 1 + photos.length) % photos.length));
+
+  const nextBtn = document.createElement('div');
+  nextBtn.className = 'slide-nav next-btn';
+  nextBtn.innerHTML = '›';
+  nextBtn.addEventListener('click', () => goToSlide((currentSlide + 1) % photos.length));
+
+  stage.appendChild(prevBtn);
+  stage.appendChild(nextBtn);
+}
+
+function goToSlide(n) {
+  clearTimeout(slideTimer);
+  clearTimeout(typeTimer);
+
+  const oldSlide = document.getElementById(`slide-${currentSlide}`);
+  oldSlide.classList.remove('active');
+  oldSlide.classList.add('prev');
+  document.getElementById(`caption-${currentSlide}`).innerHTML = '';
+
+  document.querySelectorAll('.slide-dot')[currentSlide].classList.remove('active');
+
+  currentSlide = n;
+
+  const newSlide = document.getElementById(`slide-${currentSlide}`);
+  newSlide.classList.remove('prev');
+  newSlide.classList.add('active');
+  document.querySelectorAll('.slide-dot')[currentSlide].classList.add('active');
+
+  setTimeout(() => oldSlide.classList.remove('prev'), 950);
+
+  // Reset progress bar
+  const bar = document.getElementById('progressFill');
+  bar.classList.remove('running');
+  bar.style.width = '0%';
+  void bar.offsetWidth; // reflow
+  bar.classList.add('running');
+
+  // Typewriter
+  typeCaption(currentSlide);
+
+  // Auto advance
+  slideTimer = setTimeout(() => {
+    goToSlide((currentSlide + 1) % photos.length);
+  }, SLIDE_DURATION);
+}
+
+function startSlideshow() {
+  // Type first caption
+  const bar = document.getElementById('progressFill');
+  bar.classList.add('running');
+  typeCaption(0);
+  slideTimer = setTimeout(() => {
+    goToSlide(1);
+  }, SLIDE_DURATION);
+}
+
+function typeCaption(idx) {
+  clearTimeout(typeTimer);
+  const el = document.getElementById(`caption-${idx}`);
+  const text = photos[idx].caption;
+  el.innerHTML = '';
+  let i = 0;
+
+  function type() {
+    if (i < text.length) {
+      // handle emoji (multi-char code points)
+      const char = [...text][i];
+      el.innerHTML = [...text].slice(0, i + 1).join('') + '<span class="cursor-blink"></span>';
+      i++;
+      typeTimer = setTimeout(type, 38 + Math.random() * 22);
+    } else {
+      el.innerHTML = text + '<span class="cursor-blink"></span>';
+    }
+  }
+
+  // slight delay before typing starts
+  typeTimer = setTimeout(type, 400);
+}
+
+// ============================================================
+// LIGHTBOX
+// ============================================================
+function openLightbox(src) {
+  const img = document.getElementById('lbImg');
+  img.src = src;
+  img.onerror = () => img.src = 'https://placehold.co/900x600/1a0022/ff85b3?text=Photo';
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox(e) {
+  if (!e || e.target === document.getElementById('lightbox') || e.target.tagName === 'BUTTON' || e.target.tagName === 'IMG') {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ============================================================
+// MUSIC
+// ============================================================
+let playing = false;
+const audio = document.getElementById('bgMusic');
+
+function toggleMusic() {
+  if (!playing) {
+    audio.volume = 0.45;
+    audio.play().then(() => {
+      playing = true;
+      document.getElementById('playIcon').textContent = '⏸';
+      document.getElementById('musicStatus').textContent = '♪ Sun lo dil se... ♪';
+      document.getElementById('eqBars').classList.remove('paused');
+    }).catch(() => {
+      document.getElementById('musicStatus').textContent = 'hath_fadke.mp3 folder mein rakho!';
+    });
+  } else {
+    audio.pause();
+    playing = false;
+    document.getElementById('playIcon').textContent = '▶';
+    document.getElementById('musicStatus').textContent = 'Click karke sunao 🎵';
+    document.getElementById('eqBars').classList.add('paused');
+  }
+}
+
+// ============================================================
+// BACKGROUND HEART ANIMATION — Canvas based, tagda version
+// ============================================================
+function initHeartCanvas() {
+  const canvas = document.getElementById('heartCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const HEART_EMOJIS = ['❤️','💕','💗','💖','💝','🌸','✨','💓','💞','🩷'];
+
+  class FloatingHeart {
+    constructor() { this.init(true); }
+    init(rand = false) {
+      this.x = Math.random() * W;
+      this.y = rand ? Math.random() * H : H + 40;
+      this.size = Math.random() * 20 + 10;
+      this.opacity = 0;
+      this.maxOpacity = Math.random() * 0.55 + 0.2;
+      this.speed = Math.random() * 0.8 + 0.3;
+      this.drift = (Math.random() - 0.5) * 0.6;
+      this.rotation = (Math.random() - 0.5) * 0.04;
+      this.angle = Math.random() * Math.PI * 2;
+      this.wobble = Math.random() * 0.02 + 0.005;
+      this.emoji = HEART_EMOJIS[Math.floor(Math.random() * HEART_EMOJIS.length)];
+      this.phase = rand ? 'visible' : 'fadein';
+      this.life = 0;
+    }
+    update() {
+      this.y -= this.speed;
+      this.angle += this.wobble;
+      this.x += this.drift + Math.sin(this.angle) * 0.5;
+      this.life++;
+
+      if (this.phase === 'fadein') {
+        this.opacity = Math.min(this.maxOpacity, this.opacity + 0.015);
+        if (this.opacity >= this.maxOpacity) this.phase = 'visible';
+      }
+      if (this.y < H * 0.25) {
+        this.opacity = Math.max(0, this.opacity - 0.008);
+      }
+      if (this.y < -50 || this.opacity <= 0) this.init(false);
+    }
+    draw() {
+      ctx.save();
+      ctx.globalAlpha = this.opacity;
+      ctx.font = `${this.size}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle * 0.3);
+      ctx.fillText(this.emoji, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  // More hearts = more tagda
+  const hearts = Array.from({ length: 60 }, () => new FloatingHeart());
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    hearts.forEach(h => { h.update(); h.draw(); });
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ============================================================
+// STAR PARTICLES
+// ============================================================
+function initParticles() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Star {
+    constructor() { this.reset(true); }
+    reset(rand) {
+      this.x = Math.random() * W;
+      this.y = rand ? Math.random() * H : H + 5;
+      this.r = Math.random() * 1.5 + 0.2;
+      this.opacity = Math.random() * 0.45 + 0.08;
+      this.speed = Math.random() * 0.2 + 0.04;
+      this.dx = (Math.random() - 0.5) * 0.2;
+      this.twinkle = Math.random() * Math.PI * 2;
+    }
+    draw() {
+      this.twinkle += 0.018;
+      const o = this.opacity * (0.5 + 0.5 * Math.sin(this.twinkle));
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,160,210,${o})`;
+      ctx.fill();
+    }
+    update() {
+      this.y -= this.speed; this.x += this.dx;
+      if (this.y < -5) this.reset(false);
+    }
+  }
+
+  const stars = Array.from({ length: 100 }, () => new Star());
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    stars.forEach(s => { s.update(); s.draw(); });
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildSlideshow();
+initParticles();
+initHeartCanvas();
+</script>
+</body>
+</html>
